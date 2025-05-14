@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHINY SYKO - Colorist</title>
+    <style>
+        /* Reset and Base Styles */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --text-color: #ffffff;
+            --bg-color: #000000;
+            --overlay-color: rgba(0, 0, 0, 0.7);
+            --transition-speed: 0.3s;
+        }
+        
+        /* For image handling */
+        .img-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.5;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        /* Typography */
+        h1, h2, h3 {
+            font-weight: 400;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Header and Navigation */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem;
+        }
+        
+        .logo {
+            font-size: 1.25rem;
+            letter-spacing: 0.2em;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav li {
+            margin-left: 2rem;
+        }
+        
+        nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: opacity var(--transition-speed) ease;
+        }
+        
+        nav a:hover {
+            opacity: 0.7;
+        }
+        
+        /* Main Content Sections */
+        section {
+            min-height: 100vh;
+            width: 100%;
+        }
+        
+        /* Portfolio Section */
+        .portfolio {
+            display: block;
+        }
+        
+        /* Projects */
+        .project {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .project-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform-origin: center;
+            transition: transform var(--transition-speed) ease;
+        }
+        
+        .project:hover .project-image {
+            transform: scale(1.02);
+        }
+        
+        .project-info {
+            position: absolute;
+            left: 2rem;
+            bottom: 2rem;
+            z-index: 2;
+            max-width: 80%;
+        }
+        
+        .project-title {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            font-weight: 300;
+        }
+        
+        .project-meta {
+            font-size: 0.85rem;
+            opacity: 0.85;
+        }
+        
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            right: 2rem;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(10px);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+        
+        /* Contact Section */
+        .contact {
+            display: none;
+            padding: 8rem 2rem 4rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .contact h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .contact-info {
+            margin-bottom: 3rem;
+        }
+        
+        .contact-link {
+            display: block;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            transition: opacity var(--transition-speed) ease;
+        }
+        
+        .contact-link:hover {
+            opacity: 0.7;
+        }
+        
+        /* Video Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 200;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .modal-content {
+            width: 90%;
+            max-width: 1280px;
+            position: relative;
+        }
+        
+        .video-container {
+            width: 100%;
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #111;
+            color: #fff;
+            font-size: 1.2rem;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: -3rem;
+            right: 0;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 2rem;
+            cursor: pointer;
+            outline: none;
+            transition: opacity var(--transition-speed) ease;
+        }
+        
+        .close-modal:hover {
+            opacity: 0.7;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            header {
+                padding: 1.5rem;
+            }
+            
+            .project-title {
+                font-size: 2rem;
+            }
+            
+            .project-info {
+                left: 1.5rem;
+                bottom: 1.5rem;
+            }
+            
+            .scroll-indicator {
+                bottom: 1.5rem;
+                right: 1.5rem;
+            }
+            
+            .contact {
+                padding: 7rem 1.5rem 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header & Navigation -->
+    <header>
+        <a href="#" class="logo">SHINY SYKO</a>
+        <nav>
+            <ul>
+                <li><a href="#" class="nav-link" data-section="portfolio">Work</a></li>
+                <li><a href="#" class="nav-link" data-section="contact">Contact</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <!-- Portfolio Section -->
+    <section id="portfolio" class="portfolio">
+        <!-- Project 1 -->
+        <div class="project" data-video="project1">
+            <img src="/api/placeholder/1920/1080" alt="Sunny Days" class="project-image" 
+                 style="background-image: url('/api/placeholder/1920/1080'); background-size: cover; background-position: center;">
+            <div class="project-info">
+                <h2 class="project-title">SUNNY DAYS</h2>
+                <p class="project-meta">dir. Mike O'brien<br>Music Video</p>
+            </div>
+            <div class="scroll-indicator">
+                ↓
+            </div>
+        </div>
+        
+        <!-- Project 2 -->
+        <div class="project" data-video="project2">
+            <img src="/api/placeholder/1920/1080" alt="Body-Count" class="project-image"
+                 style="background-image: url('/api/placeholder/1920/1080'); background-size: cover; background-position: center top;">
+            <div class="project-info">
+                <h2 class="project-title">BODY-COUNT</h2>
+                <p class="project-meta">dir. DirtFlirt<br>Music Video</p>
+            </div>
+            <div class="scroll-indicator">
+                ↓
+            </div>
+        </div>
+        
+        <!-- Project 3 -->
+        <div class="project" data-video="project3">
+            <img src="/api/placeholder/1920/1080" alt="Westside" class="project-image">
+            <div class="project-info">
+                <h2 class="project-title">WESTSIDE</h2>
+                <p class="project-meta">dir. Aniket Chaudhary<br>Fashion Film</p>
+            </div>
+            <div class="scroll-indicator">
+                ↓
+            </div>
+        </div>
+        
+        <!-- Project 4 -->
+        <div class="project" data-video="project4">
+            <img src="/api/placeholder/1920/1080" alt="Repeat-Reverse" class="project-image">
+            <div class="project-info">
+                <h2 class="project-title">REPEAT-REVERSE</h2>
+                <p class="project-meta">dir. Shuyue Su<br>AFI Visual Essay</p>
+            </div>
+            <div class="scroll-indicator">
+                ↓
+            </div>
+        </div>
+        
+        <!-- Project 5 -->
+        <div class="project" data-video="project5">
+            <img src="/api/placeholder/1920/1080" alt="Kenstar" class="project-image">
+            <div class="project-info">
+                <h2 class="project-title">KENSTAR</h2>
+                <p class="project-meta">dir. Yatharth Mundada<br>Commercial</p>
+            </div>
+            <div class="scroll-indicator">
+                ↓
+            </div>
+        </div>
+        
+        <!-- Project 6 -->
+        <div class="project" data-video="project6">
+            <img src="/api/placeholder/1920/1080" alt="Nautica" class="project-image">
+            <div class="project-info">
+                <h2 class="project-title">NAUTICA</h2>
+                <p class="project-meta">dir. Abhyuday Sharma<br>Commercial</p>
+            </div>
+            <div class="scroll-indicator">
+                ↓
+            </div>
+        </div>
+        
+        <!-- Project 7 -->
+        <div class="project" data-video="project7">
+            <img src="/api/placeholder/1920/1080" alt="Khara Kapas" class="project-image">
+            <div class="project-info">
+                <h2 class="project-title">KHARA KAPAS</h2>
+                <p class="project-meta">dir. Team Insolite<br>Fashion Film</p>
+            </div>
+            <div class="scroll-indicator">
+                ↓
+            </div>
+        </div>
+        
+        <!-- Project 8 -->
+        <div class="project" data-video="project8">
+            <img src="/api/placeholder/1920/1080" alt="Santa La Perla" class="project-image">
+            <div class="project-info">
+                <h2 class="project-title">SANTA LA PERLA</h2>
+                <p class="project-meta">dir. Santiago<br>Spec Project</p>
+            </div>
+            <div class="scroll-indicator">
+                ↓
+            </div>
+        </div>
+        
+        <!-- Project 9 -->
+        <div class="project" data-video="project9">
+            <img src="/api/placeholder/1920/1080" alt="Fun Shuffle" class="project-image">
+            <div class="project-info">
+                <h2 class="project-title">FUN SHUFFLE</h2>
+                <p class="project-meta">dir. Tanaya Pande<br>Concept Film</p>
+            </div>
+            <div class="scroll-indicator">
+                ↓
+            </div>
+        </div>
+    </section>
+    
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <h2>Get in touch</h2>
+        <div class="contact-info">
+            <p>For color grading inquiries, please contact me directly:</p>
+        </div>
+        <a href="mailto:hello@shinysyko.com" class="contact-link">hello@shinysyko.com</a>
+        <a href="tel:+1234567890" class="contact-link">+1 (234) 567-890</a>
+        
+        <div style="margin-top: 3rem;">
+            <p style="margin-bottom: 1rem;">Follow my work:</p>
+            <a href="#" class="contact-link">Instagram</a>
+            <a href="#" class="contact-link">Vimeo</a>
+        </div>
+    </section>
+    
+    <!-- Video Modal -->
+    <div class="modal" id="videoModal">
+        <div class="modal-content">
+            <button class="close-modal" id="closeModal">×</button>
+            <div class="video-container">
+                <div class="video-placeholder">
+                    Your video would play here in a real implementation
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('section');
+        const projects = document.querySelectorAll('.project');
+        const videoModal = document.getElementById('videoModal');
+        const closeModal = document.getElementById('closeModal');
+        const scrollIndicators = document.querySelectorAll('.scroll-indicator');
+        
+        // Navigation
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetSection = link.getAttribute('data-section');
+                
+                sections.forEach(section => {
+                    section.style.display = 'none';
+                });
+                
+                document.getElementById(targetSection).style.display = 'block';
+            });
+        });
+        
+        // Project Click - Open Video Modal
+        projects.forEach(project => {
+            project.addEventListener('click', () => {
+                const videoId = project.getAttribute('data-video');
+                openVideoModal(videoId);
+            });
+        });
+        
+        // Open Video Modal
+        function openVideoModal(videoId) {
+            // In a real implementation, you would load the actual video here
+            // Example with real implementation:
+            // const videoContainer = document.querySelector('.video-container');
+            // videoContainer.innerHTML = `<iframe src="https://player.vimeo.com/${videoId}" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+            
+            videoModal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent body scrolling
+        }
+        
+        // Close Video Modal
+        closeModal.addEventListener('click', () => {
+            videoModal.classList.remove('active');
+            document.body.style.overflow = ''; // Re-enable body scrolling
+            
+            // Reset video container (stops video playback)
+            // In real implementation: document.querySelector('.video-container').innerHTML = '';
+        });
+        
+        // Scroll to next project when clicking indicator
+        scrollIndicators.forEach(indicator => {
+            indicator.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent triggering the project click
+                const currentProject = indicator.closest('.project');
+                const nextProject = currentProject.nextElementSibling;
+                
+                if (nextProject && nextProject.classList.contains('project')) {
+                    nextProject.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        
+        // Close modal when clicking outside content
+        videoModal.addEventListener('click', (e) => {
+            if (e.target === videoModal) {
+                videoModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && videoModal.classList.contains('active')) {
+                videoModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    </script>
+</body>
+</html>
